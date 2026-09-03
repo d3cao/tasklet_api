@@ -5,9 +5,9 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: secretpassword
-      POSTGRES_DB: meudb
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
     ports:
       - "5432:5432"
     volumes:
@@ -20,11 +20,12 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DB_HOST: db            # Repare aqui: o Host é o NOME do serviço do banco acima!
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: secretpassword
-      DB_NAME: meudb
+      PORT: $PORT
+      DB_HOST: $DB_HOST            # Repare aqui: o Host é o NOME do serviço do banco acima!
+      DB_PORT: $DB_PORT
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_NAME: $DB_NAME          # Repare aqui: o Host é o NOME do serviço do banco acima!
     depends_on:
       - db                   # Garante que o banco suba antes do seu app
 

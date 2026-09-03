@@ -11,10 +11,17 @@ import (
 var ConnectionDB *sql.DB
 
 func ConnectDatabase() error {
-	dsn := os.Getenv("DATABASE_URL")
+	
+	host := os.Getenv("DB_HOST")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	port := os.Getenv("DB_PORT")
+	db_name := os.Getenv("DB_NAME")
+
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, db_name)
 	
 	var err error
-	
+
 	ConnectionDB, err = sql.Open("pgx", dsn)
 	if err != nil {
 		fmt.Println("[Erro]: A conexão não foi estabelecida")
