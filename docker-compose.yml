@@ -21,7 +21,7 @@ services:
       - "8080:8080"
     environment:
       PORT: $PORT
-      DB_HOST: $DB_HOST            # Repare aqui: o Host é o NOME do serviço do banco acima!
+      DB_HOST: db            # Repare aqui: o Host é o NOME do serviço do banco acima!
       DB_PORT: $DB_PORT
       DB_USER: $DB_USER
       DB_PASSWORD: $DB_PASSWORD
