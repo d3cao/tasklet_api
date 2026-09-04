@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
+	"log/slog"
 
 	"tasklet_api/internal"
 	"tasklet_api/internal/db"
@@ -12,10 +12,17 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {return}
+
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	slog.Info("Log iniciado com sucesso")
+
+	if err := godotenv.Load(); err != nil {
+		slog.Error("Error loading .env file", "error", err)
+	}
 
 	if err := db.ConnectDatabase(); err != nil {
-		return
+		slog.Error("Failed to connect to database", "error", err)
+		os.Exit(1)
 	}
 	defer db.ConnectionDB.Close()
 
@@ -23,7 +30,7 @@ func main() {
 	router := internal.ConfigurarRotas()
 
 	if err := http.ListenAndServe(porta, router); err != nil {
-		fmt.Println(err)
+		slog.Error("HTTP server error", "error", err)
 	}
 
 	
