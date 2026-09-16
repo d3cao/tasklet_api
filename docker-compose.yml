@@ -13,6 +13,12 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
 
   # Container da sua Aplicação Go
   app:
@@ -27,7 +33,8 @@ services:
       DB_PASSWORD: $DB_PASSWORD
       DB_NAME: $DB_NAME          # Repare aqui: o Host é o NOME do serviço do banco acima!
     depends_on:
-      - db                   # Garante que o banco suba antes do seu app
+      db:
+        condition: service_healthy                   # Garante que o banco suba antes do seu app
 
 volumes:
   pgdata:
