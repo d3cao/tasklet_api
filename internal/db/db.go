@@ -9,9 +9,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-var ConnectionDB *sql.DB
-
-func ConnectDatabase() error {
+func ConnectDatabase() (*sql.DB, error) {
 
 	host := os.Getenv("DB_HOST")
 	user := os.Getenv("DB_USER")
@@ -23,18 +21,18 @@ func ConnectDatabase() error {
 
 	var err error
 
-	ConnectionDB, err = sql.Open("pgx", dsn)
+	ConnectionDB, err := sql.Open("pgx", dsn)
 	if err != nil {
 		slog.Error("A conexão não foi estabelecida", "error", err)
-		return err
+		return nil, err
 	}
 
 	if err = ConnectionDB.Ping(); err != nil {
 		slog.Error("Não foi possível se comunicar com o banco", "error", err)
-		return err
+		return nil, err
 	}
 
 	slog.Info("Conexão com o banco estabelecida")
 
-	return nil
+	return ConnectionDB, nil
 }

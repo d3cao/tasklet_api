@@ -20,11 +20,13 @@ func main() {
 		slog.Error("Error loading .env file", "error", err)
 	}
 
-	if err := db.ConnectDatabase(); err != nil {
+	conn, err := db.ConnectDatabase();
+	if err != nil {
 		slog.Error("Failed to connect to database", "error", err)
 		os.Exit(1)
 	}
-	defer db.ConnectionDB.Close()
+	defer conn.Close()
+
 
 	porta := os.Getenv("PORT")
 	router := internal.ConfigurarRotas()
