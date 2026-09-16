@@ -11,7 +11,7 @@ type TarefaHandler struct {
 	DB *sql.DB
 }
 
-func ListarTarefasHandlers(w http.ResponseWriter, r *http.Request) {
+func (h *TarefaHandler) ListarTarefasHandlers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
