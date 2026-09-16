@@ -29,7 +29,7 @@ func main() {
 
 
 	porta := os.Getenv("PORT")
-	router := internal.ConfigurarRotas()
+	router := internal.ConfigurarRotas(conn)
 
 	if err := http.ListenAndServe(porta, router); err != nil {
 		slog.Error("HTTP server error", "error", err)

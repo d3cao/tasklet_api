@@ -3,11 +3,15 @@ package internal
 import (
 	"net/http"
 	"tasklet_api/internal/handlers"
+
+	"database/sql"
 )
 
-func ConfigurarRotas() *http.ServeMux {
+func ConfigurarRotas(conn *sql.DB) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /tarefas", handlers.ListarTarefasHandlers)
+	tarefaHandler := &handlers.TarefaHandler{DB: conn}
+
+	mux.HandleFunc("GET /tarefas", tarefaHandler.ListarTarefasHandlers)
 	return mux
 }
