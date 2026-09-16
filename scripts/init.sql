@@ -2,9 +2,9 @@ CREATE TABLE task (
     task_id SERIAL PRIMARY KEY,
     nome VARCHAR(50) NOT NULL,
     descricao TEXT,
-    estado INTEGER,
+    estado INTEGER NOT NULL DEFAULT 0 CHECK (estado IN (0, 1, 2)),
     prazo TIMESTAMP,
-    repeticao INTEGER,
+    repeticao INTEGER NOT NULL DEFAULT 0 CHECK (repeticao >= 0),
     dia_execucao TIMESTAMP
 );
 
