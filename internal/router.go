@@ -13,5 +13,6 @@ func ConfigurarRotas(conn *sql.DB) *http.ServeMux {
 	tarefaHandler := &handlers.TarefaHandler{DB: conn}
 
 	mux.HandleFunc("GET /tarefas", tarefaHandler.ListarTarefasHandlers)
+	mux.HandleFunc("POST /tarefas", tarefaHandler.CriarTarefaHandler)
 	return mux
 }
