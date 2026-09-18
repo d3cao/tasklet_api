@@ -2,9 +2,9 @@ services:
   db-test:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: $DB_USER
-      POSTGRES_PASSWORD: $DB_PASSWORD
-      POSTGRES_DB: $DB_NAME
+      POSTGRES_USER: tasklet_test
+      POSTGRES_PASSWORD: tasklet_test
+      POSTGRES_DB: tasklet_test
     tmpfs:
       - /var/lib/postgresql/data
     volumes:
