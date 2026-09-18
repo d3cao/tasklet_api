@@ -1,0 +1,30 @@
+services:
+  db-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASSWORD
+      POSTGRES_DB: $DB_NAME
+    tmpfs:
+      - /var/lib/postgresql/data
+    volumes:
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U tasklet_test -d tasklet_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 10s
+
+  tests:
+    image: golang:1.27-alpine
+    working_dir: /app
+    volumes:
+      - .:/app:ro
+    environment:
+      CGO_ENABLED: "0"
+      TEST_DATABASE_URL: postgres://tasklet_test:tasklet_test@db-test:5432/tasklet_test?sslmode=disable
+    depends_on:
+      db-test:
+        condition: service_healthy
+    command: ["go", "test", "-count=1", "-v", "./..."]
