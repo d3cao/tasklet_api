@@ -7,18 +7,12 @@ import (
 
 	"tasklet_api/internal"
 	"tasklet_api/internal/db"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
 
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 	slog.Info("Log iniciado com sucesso")
-
-	if err := godotenv.Load(); err != nil {
-		slog.Error("Error loading .env file", "error", err)
-	}
 
 	conn, err := db.ConnectDatabase();
 	if err != nil {
