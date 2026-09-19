@@ -4,6 +4,10 @@ import "time"
 
 type EstadoTarefa int
 
+//Os estados devem sempre continuar iguais, mudar eles significa uma possivel inconsistência de dados.
+//Em termos de engenharia, não é a melhor forma, o ideal seria fazer código modular, porém como esse projeto foi feito apenas como um projeto para aprender Go, não tive essa preocupação
+//O problema que eu estou apontando aqui é, caso o valor dos estados mude nessa constante, uma tarefa que deveria estar com um estado, estará com outro, pois o banco persistiu um valor númerico
+//A conversão desse valor númerico é feita na API. Mudando a ordem dos números, muda a conversão e consequentemente os estados.
 const (
 	EstadoPendente EstadoTarefa = 0
 	EstadoConcluida EstadoTarefa = 1

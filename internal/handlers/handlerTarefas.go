@@ -86,7 +86,7 @@ func (h *TarefaHandler) CriarTarefaHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (h *TarefaHandler) ListarTarefasHandlers(w http.ResponseWriter, r *http.Request) {
+func (h *TarefaHandler) ListarTarefasPendentesHandlers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 

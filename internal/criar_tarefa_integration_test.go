@@ -3,7 +3,12 @@ package internal
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"strings"
+	"tasklet_api/internal/models"
 	"testing"
 	"time"
 
@@ -29,5 +34,41 @@ func TestCriarTarefaIntegracao(t *testing.T) {
 
 	if err := conn.PingContext(ctx); err != nil {
 		t.Fatalf("Erro ao tentar conectar com o Banco: %v", err)
+	}
+
+	requisicao := httptest.NewRequest(
+		http.MethodPost,
+		"/tarefas",
+		strings.NewReader(`{"nome":"Estudar Go"}`),
+	)
+
+	resposta := httptest.NewRecorder()
+
+	ConfigurarRotas(conn).ServeHTTP(resposta, requisicao)
+
+	if resposta.Code != http.StatusCreated {
+		t.Fatalf("Erro ao criar a tarefa no banco de dados: %s", resposta.Body.String())
+	}
+
+	tarefa := &models.Tarefa{}
+
+	if err := json.NewDecoder(resposta.Body).Decode(tarefa); err != nil {
+		t.Fatalf("Erro ao decodificar resposta: %v", err)
+	}
+
+	if tarefa.ID <= 0 {
+		t.Errorf("O id de uma tarefa precisa ser maior do que 0, id entregue: %v", tarefa.ID)
+	}
+
+	if tarefa.Nome != "Estudar Go" {
+		t.Errorf("O nome da tarefa não está correto")
+	}
+
+	if tarefa.Estado != models.EstadoPendente {
+		t.Errorf("O estado esperado é: %d, estado entregue: %d", models.EstadoPendente, tarefa.Estado)
+	}
+
+	if tarefa.Repeticao != 0 {
+		t.Errorf("Tarefa sem repetição definida, repetição esperada: 0, repetição entregue: %d", tarefa.Repeticao)
 	}
 }
