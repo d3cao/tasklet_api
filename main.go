@@ -12,8 +12,6 @@ import (
 
 func main() {
 
-	fmt.Println("Teste")
-
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 	slog.Info("Log iniciado com sucesso")
 
