@@ -23,10 +23,17 @@ type CriarTarefaEntrada struct {
 	DiaExecucao *time.Time `json:"dia_execucao"`
 }
 
-const query = `
+const queryInsertion = `
 	INSERT INTO task (nome, descricao, prazo, repeticao, dia_execucao)
 	VALUES ($1, $2, $3, $4, $5)
 	RETURNING task_id, nome, descricao, estado, prazo, repeticao, dia_execucao
+`
+
+const queryPending = `
+	SELECT task_id, nome, descricao, estado, prazo, repeticao, dia_execucao
+	FROM task
+	WHERE estado = $1
+	ORDER BY task_id
 `
 
 func (h *TarefaHandler) CriarTarefaHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +63,7 @@ func (h *TarefaHandler) CriarTarefaHandler(w http.ResponseWriter, r *http.Reques
 
 	err := h.DB.QueryRowContext(
 		r.Context(),
-		query,
+		queryInsertion,
 		entrada.Nome,
 		entrada.Descricao,
 		entrada.Prazo,
@@ -88,8 +95,43 @@ func (h *TarefaHandler) CriarTarefaHandler(w http.ResponseWriter, r *http.Reques
 
 func (h *TarefaHandler) ListarTarefasPendentesHandlers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
-	resposta := map[string]string{"status": "sucesso", "mensagem": "Lista de tarefas"}
-	json.NewEncoder(w).Encode(resposta)
+	rows, err := h.DB.QueryContext(r.Context(), queryPending, models.EstadoPendente)
+	if err != nil {
+		slog.Error("Erro ao fazer a query de busca no banco de dados", "error", err)
+		http.Error(w, "Erro ao listar tarefas", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	tarefas := []models.Tarefa{}
+
+	for rows.Next() {
+		var tarefa models.Tarefa
+
+		if err := rows.Scan(
+			&tarefa.ID,
+			&tarefa.Nome,
+			&tarefa.Descricao,
+			&tarefa.Estado,
+			&tarefa.Prazo,
+			&tarefa.Repeticao,
+			&tarefa.DiaExecucao,
+		); err != nil {
+			slog.Error("Erro no scan das tarefas (rows.Scan)", "error", err)
+			http.Error(w, "Erro ao ler as tarefas", http.StatusInternalServerError)
+			return
+		}
+
+		tarefas = append(tarefas, tarefa)
+	}
+
+	if err := rows.Err(); err != nil {
+		slog.Error("Erro durante a consulta das rows", "error", err)
+		http.Error(w, "Erro durante a consulta dos dados", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(tarefas)
 }
