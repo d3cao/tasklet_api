@@ -1,15 +1,18 @@
 package main
 
 import (
+	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
-	"log/slog"
 
 	"tasklet_api/internal"
 	"tasklet_api/internal/db"
 )
 
 func main() {
+
+	fmt.Println("Teste")
 
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 	slog.Info("Log iniciado com sucesso")
