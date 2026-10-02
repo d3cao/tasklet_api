@@ -1,0 +1,29 @@
+name: Testes
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Testes Go e PostgreSQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v6
+
+      - name: Executar testes com PostgreSQL temporário
+        run: docker compose -p tasklet-tests -f compose.test.yml run --rm tests
+
+      - name: Mostrar logs em caso de falha
+        if: failure()
+        run: docker compose -p tasklet-tests -f compose.test.yml logs --no-color
+
+      - name: Remover o ambiente de testes
+        if: always()
+        run: docker compose -p tasklet-tests -f compose.test.yml down -v --remove-orphans
