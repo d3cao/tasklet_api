@@ -58,6 +58,34 @@ func TestCriarTarefaIntegracao(t *testing.T) {
 	if tarefa.Repeticao != 0 {
 		t.Errorf("Tarefa sem repetição definida, repetição esperada: 0, repetição entregue: %d", tarefa.Repeticao)
 	}
+
+	var nomeSalvo string
+	var estadoSalvo models.EstadoTarefa
+	var repeticaoSalva int
+
+	err := conn.QueryRowContext(
+		context.Background(),
+		`SELECT nome, estado, repeticao
+		FROM task
+		WHERE task_id = $1`,
+		tarefa.ID,
+	).Scan(&nomeSalvo, &estadoSalvo, &repeticaoSalva)
+
+	if err != nil {
+		t.Fatalf("Erro ao consultar tarefa criada: %v", err)
+	}
+
+	if nomeSalvo != "Estudar Go" {
+		t.Errorf("Nome esperado: %q; recebido: %q", "Estudar Go", nomeSalvo)
+	}
+
+	if estadoSalvo != models.EstadoPendente {
+		t.Errorf("Estado esperado: %d; recebido: %q", models.EstadoPendente, estadoSalvo)
+	}
+
+	if repeticaoSalva != 0 {
+		t.Errorf("Repetição esperada: 0; recebida: %d", repeticaoSalva)
+	}
 }
 
 func conectarBancoDeTeste(t *testing.T) *sql.DB {
