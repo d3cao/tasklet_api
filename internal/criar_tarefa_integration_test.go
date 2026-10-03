@@ -80,7 +80,7 @@ func TestCriarTarefaIntegracao(t *testing.T) {
 	}
 
 	if estadoSalvo != models.EstadoPendente {
-		t.Errorf("Estado esperado: %d; recebido: %q", models.EstadoPendente, estadoSalvo)
+		t.Errorf("Estado esperado: %d; recebido: %d", models.EstadoPendente, estadoSalvo)
 	}
 
 	if repeticaoSalva != 0 {
