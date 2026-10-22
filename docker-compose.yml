@@ -1,40 +1,34 @@
-version: '3.8'
-
 services:
-  # Container do Banco de Dados
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: $DB_USER
-      POSTGRES_PASSWORD: $DB_PASSWORD
-      POSTGRES_DB: $DB_NAME
+      POSTGRES_USER: ${DB_USER:-tasklet}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-tasklet}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 5s
       timeout: 3s
       retries: 10
       start_period: 10s
-
-  # Container da sua Aplicação Go
   app:
     build: .
     ports:
       - "8080:8080"
     environment:
-      PORT: $PORT
-      DB_HOST: db            # Repare aqui: o Host é o NOME do serviço do banco acima!
-      DB_PORT: $DB_PORT
-      DB_USER: $DB_USER
-      DB_PASSWORD: $DB_PASSWORD
-      DB_NAME: $DB_NAME          # Repare aqui: o Host é o NOME do serviço do banco acima!
+      PORT: "8080"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-tasklet}
+      DB_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD}
+      DB_NAME: ${DB_NAME:-tasklet}
+      DB_SSLMODE: disable
     depends_on:
       db:
-        condition: service_healthy                   # Garante que o banco suba antes do seu app
-
+        condition: service_healthy
 volumes:
   pgdata:

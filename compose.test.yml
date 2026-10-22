@@ -7,15 +7,12 @@ services:
       POSTGRES_DB: tasklet_test
     tmpfs:
       - /var/lib/postgresql/data
-    volumes:
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U tasklet_test -d tasklet_test"]
       interval: 2s
       timeout: 3s
       retries: 15
       start_period: 10s
-
   tests:
     image: golang:1.27-alpine
     working_dir: /app
@@ -27,4 +24,4 @@ services:
     depends_on:
       db-test:
         condition: service_healthy
-    command: ["go", "test", "-count=1", "-v", "./..."]
+    command: ["sh", "-c", "go test -count=1 -v ./... && go vet ./..."]

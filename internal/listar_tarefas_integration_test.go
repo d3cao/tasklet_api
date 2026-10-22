@@ -61,16 +61,22 @@ func TestListarTarefasPendentesIntegracao(t *testing.T) {
 	primeiroID := inserir("Estudar Go", models.EstadoPendente)
 	segundoID := inserir("Escrever testes", models.EstadoPendente)
 	inserir("Tarefa concluída", models.EstadoConcluida)
-	inserir("Tarefa atrasada", models.EstadoAtrasada)
+	atrasadaID := inserir("Tarefa atrasada", models.EstadoPendente)
+	if _, err := conn.Exec("UPDATE task SET prazo=now()-interval '1 hour' WHERE task_id=$1", atrasadaID); err != nil {
+		t.Fatal(err)
+	}
 
 	tarefas := consultar()
-	if len(tarefas) != 2 {
-		t.Fatalf("Esperadas 2 tarefas pendentes; recebidas %d: %+v", len(tarefas), tarefas)
+	if len(tarefas) != 3 {
+		t.Fatalf("Esperadas 3 tarefas abertas; recebidas %d: %+v", len(tarefas), tarefas)
 	}
 	if tarefas[0].ID != primeiroID || tarefas[0].Nome != "Estudar Go" || tarefas[0].Estado != models.EstadoPendente {
 		t.Errorf("Primeira tarefa pendente incorreta: %+v", tarefas[0])
 	}
 	if tarefas[1].ID != segundoID || tarefas[1].Nome != "Escrever testes" || tarefas[1].Estado != models.EstadoPendente {
 		t.Errorf("Segunda tarefa pendente incorreta: %+v", tarefas[1])
+	}
+	if tarefas[2].ID != atrasadaID || tarefas[2].Estado != models.EstadoAtrasada {
+		t.Errorf("Tarefa atrasada incorreta: %+v", tarefas[2])
 	}
 }

@@ -6,13 +6,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"tasklet_api/internal/models"
 	"testing"
-	"time"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
+	"tasklet_api/internal/testutil"
 )
 
 func TestCriarTarefaIntegracao(t *testing.T) {
@@ -90,24 +88,5 @@ func TestCriarTarefaIntegracao(t *testing.T) {
 
 func conectarBancoDeTeste(t *testing.T) *sql.DB {
 	t.Helper()
-	dsn := os.Getenv("TEST_DATABASE_URL")
-	if dsn == "" {
-		t.Skip("TEST_DATABASE_URL não configurada")
-	}
-
-	conn, err := sql.Open("pgx", dsn)
-	if err != nil {
-		t.Fatalf("Erro ao abrir banco de testes: %v", err)
-	}
-	t.Cleanup(func() {
-		conn.Close()
-	})
-
-	ctx, cancelar := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelar()
-
-	if err := conn.PingContext(ctx); err != nil {
-		t.Fatalf("Erro ao tentar conectar com o Banco: %v", err)
-	}
-	return conn
+	return testutil.Database(t, true)
 }
