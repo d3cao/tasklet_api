@@ -6,13 +6,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"tasklet_api/internal/models"
 	"testing"
-	"time"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
+	"tasklet_api/internal/testutil"
 )
 
 func TestCriarTarefaIntegracao(t *testing.T) {
@@ -58,28 +56,37 @@ func TestCriarTarefaIntegracao(t *testing.T) {
 	if tarefa.Repeticao != 0 {
 		t.Errorf("Tarefa sem repetição definida, repetição esperada: 0, repetição entregue: %d", tarefa.Repeticao)
 	}
+
+	var nomeSalvo string
+	var estadoSalvo models.EstadoTarefa
+	var repeticaoSalva int
+
+	err := conn.QueryRowContext(
+		context.Background(),
+		`SELECT nome, estado, repeticao
+		FROM task
+		WHERE task_id = $1`,
+		tarefa.ID,
+	).Scan(&nomeSalvo, &estadoSalvo, &repeticaoSalva)
+
+	if err != nil {
+		t.Fatalf("Erro ao consultar tarefa criada: %v", err)
+	}
+
+	if nomeSalvo != "Estudar Go" {
+		t.Errorf("Nome esperado: %q; recebido: %q", "Estudar Go", nomeSalvo)
+	}
+
+	if estadoSalvo != models.EstadoPendente {
+		t.Errorf("Estado esperado: %d; recebido: %d", models.EstadoPendente, estadoSalvo)
+	}
+
+	if repeticaoSalva != 0 {
+		t.Errorf("Repetição esperada: 0; recebida: %d", repeticaoSalva)
+	}
 }
 
 func conectarBancoDeTeste(t *testing.T) *sql.DB {
 	t.Helper()
-	dsn := os.Getenv("TEST_DATABASE_URL")
-	if dsn == "" {
-		t.Skip("TEST_DATABASE_URL não configurada")
-	}
-
-	conn, err := sql.Open("pgx", dsn)
-	if err != nil {
-		t.Fatalf("Erro ao abrir banco de testes: %v", err)
-	}
-	t.Cleanup(func() {
-		conn.Close()
-	})
-
-	ctx, cancelar := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelar()
-
-	if err := conn.PingContext(ctx); err != nil {
-		t.Fatalf("Erro ao tentar conectar com o Banco: %v", err)
-	}
-	return conn
+	return testutil.Database(t, true)
 }

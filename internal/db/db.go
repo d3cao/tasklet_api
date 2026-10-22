@@ -1,38 +1,49 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	"log/slog"
+	"net"
+	"net/url"
 	"os"
+	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func ConnectDatabase() (*sql.DB, error) {
-
-	host := os.Getenv("DB_HOST")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
+func databaseURL() string {
+	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
+		return dsn
+	}
 	port := os.Getenv("DB_PORT")
-	db_name := os.Getenv("DB_NAME")
+	if port == "" {
+		port = "5432"
+	}
+	host := os.Getenv("DB_HOST")
+	if host == "" {
+		host = "localhost"
+	}
+	mode := os.Getenv("DB_SSLMODE")
+	if mode == "" {
+		mode = "disable"
+	}
+	u := url.URL{Scheme: "postgres", Host: net.JoinHostPort(host, port), User: url.UserPassword(os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD")), Path: "/" + os.Getenv("DB_NAME")}
+	q := url.Values{"sslmode": {mode}}
+	u.RawQuery = q.Encode()
+	return u.String()
+}
 
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, password, host, port, db_name)
-
-	var err error
-
-	ConnectionDB, err := sql.Open("pgx", dsn)
+func ConnectDatabase() (*sql.DB, error) {
+	conn, err := sql.Open("pgx", databaseURL())
 	if err != nil {
-		slog.Error("A conexão não foi estabelecida", "error", err)
-		return nil, err
+		return nil, fmt.Errorf("abrir banco: %w", err)
 	}
-
-	if err = ConnectionDB.Ping(); err != nil {
-		slog.Error("Não foi possível se comunicar com o banco", "error", err)
-		return nil, err
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err = conn.PingContext(ctx); err != nil {
+		conn.Close()
+		return nil, fmt.Errorf("conectar banco: %w", err)
 	}
-
-	slog.Info("Conexão com o banco estabelecida")
-
-	return ConnectionDB, nil
+	return conn, nil
 }
